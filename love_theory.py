@@ -21,19 +21,19 @@ class LoveTheoryAgent:
 
     def forward_chaining(self):
         self.reset_working_memory()
-        has_fired_rules = False
         while True:
+            has_fired_rules = False
             for rule in self.rules:
-                if rule.fire(self.working_memory) in self.working_memory or len(rule.fire(self.working_memory)) == 0:
+                if rule.fire(self.working_memory).issubset(self.working_memory):
                     continue
                 has_fired_rules = True
-                self.working_memory = self.working_memory.union(rule.fire(self.working_memory))
+                self.working_memory = self.working_memory.union(
+                    rule.fire(self.working_memory))
                 self.fired_rules.add((rule.id, rule.description))
             if not has_fired_rules:
                 break
         return self.fired_rules
 
-    
     def backward_chaining(self, goal):
         self.reset_working_memory()
         goals = set(goal)
@@ -89,16 +89,14 @@ if __name__ == "__main__":
             love_scale.append(LoveScale(category, item))
 
     # random.shuffle(love_scale)
-
+    print ("Please rate the following statements on a scale of 1 to 5 (1 = Strongly Disagree, 5 = Strong Agree)")
     for l in love_scale:
         print(l.item)
-        user_in = input(
-            "Please rate your agreement with this statement on a scale of 1 to 5: ")
+        user_in = input()
         rating = int(user_in)
         while not (rating >= rating_min and rating <= rating_max):
             print("Invalid input. Please enter an integer number between 1 and 5.")
-            user_in = input(
-                "Please rate your agreement with this statement on a scale of 1 to 5: ")
+            user_in = input()
             rating = int(user_in)
         love_points[l.category] += rating
 
