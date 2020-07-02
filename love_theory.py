@@ -9,7 +9,7 @@ class LoveTheoryAgent:
         self.commitment_points = c
         self.working_memory = set()
         self.rules = set()
-        self.fired_rules = set()
+        self.fired_rules = []
         self.goal = None
         self.subgoals = set()
 
@@ -29,7 +29,7 @@ class LoveTheoryAgent:
                 has_fired_rules = True
                 self.working_memory = self.working_memory.union(
                     rule.fire(self.working_memory))
-                self.fired_rules.add((rule.id, rule.description))
+                self.fired_rules.append((rule.id, rule.description))
             if not has_fired_rules:
                 break
         return self.fired_rules
@@ -46,13 +46,13 @@ class LoveTheoryAgent:
                         self.working_memory = self.working_memory.union(
                             rule.fire(self.working_memory))
                         goals = goals.difference(rule.consequences)
-                        self.fired_rules.add((rule.id, rule.description))
+                        self.fired_rules.append((rule.id, rule.description))
 
 
 class LoveTheoryRule:
     rule_count = 0
 
-    def __init__(self, a, c, d, p=lambda x, y: x.issubset(y)):
+    def __init__(self, a, c, d, p):
         LoveTheoryRule.rule_count += 1
         self.id = LoveTheoryRule.rule_count
         self.antecedents = a
@@ -108,8 +108,30 @@ if __name__ == "__main__":
         LoveTheoryRule(agent.passion_points, {"passion"}, "If passion_points > (total_points / 2), then passion.",
                        lambda x, y: x >= (rating_max + rating_min) / 2 * len([l for l in love_scale if l.category == 'passion'])),
         LoveTheoryRule(agent.commitment_points, {"commitment"}, "If commitment_points > (total_points / 2), then commitment.",
-                       lambda x, y: x >= (rating_max + rating_min) / 2 * len([l for l in love_scale if l.category == 'commitment']))
+                       lambda x, y: x >= (rating_max + rating_min) / 2 * len([l for l in love_scale if l.category == 'commitment'])),
+
+        LoveTheoryRule(set(), {"nonlove"}, "If intimacy, passion, commitment are all absent, then nonlove.", 
+                        lambda _, y: not ("intimacy" in y or "passion" in y or "commitment" in y)),
+        LoveTheoryRule({"intimacy"}, {"friendship"}, "If intimacy, then friendship.",
+                        lambda x, y: x == y),
+        LoveTheoryRule({"passion"}, {"infatuation"}, "If passion, then infatuation.", 
+                        lambda x, y: x == y),
+        LoveTheoryRule({"commitment"}, {"empty love"}, "If commitment, then empty love.", 
+                        lambda x, y: x == y)
     }
+
+# LoveTheoryRule({"intimacy", "passion"}, {"romantic love"}, "If intimacy and passion, then romantic love."),
+#         LoveTheoryRule({"intimacy", "commitment"}, {"companionate love"}, "If intimacy and commitment, then companionate love."),
+#         LoveTheoryRule({"commitment", "passion"}, {"fatuous love"}, "If commitment and passion, then fatuous love."),
+#         LoveTheoryRule({"intimacy", "commitment", "passion"}, {"consummate love"}, "If intimacy, commitment and passion, then consummate love."),
+    # LoveTheoryRule({"nonlove"}, {"nonlove description"}, "If nonlove, then nonlove description."),
+        # LoveTheoryRule({"friendship"}, {"friendship description"}, "If friendship, then friendship description."),
+        # LoveTheoryRule({"infatuation"}, {"infatuation description"}, "If infatuation, then infatuation description."),
+        # LoveTheoryRule({"empty love"}, {"empty love description"}, "If empty love, then empty love description."),
+        # LoveTheoryRule({"romantic love"}, {"romantic love description"}, "If romantic love, then romantic love description."),
+        # LoveTheoryRule({"companionate love"}, {"companionate love description"}, "If companionate love, then companionate love description."),
+        # LoveTheoryRule({"fatuous love"}, {"fatuous love description"}, "If fatuous love, then fatuous love description."),
+        # LoveTheoryRule({"consummate love"}, {"consummate love description"}, "If consummate love, then consummate love description.")
 
     agent.set_rules(rules)
     fired_rules = agent.forward_chaining()
