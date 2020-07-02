@@ -43,17 +43,20 @@ class LoveTheoryAgent:
         self.initialize_working_memory()
         goals = [goal]
         while len(goals) >= 1:
+            has_modified_goal = False
             for rule in self.production_rules:
                 if goals[-1] in list(rule.consequences):
                     if len(rule.fire(self.working_memory)) == 0:
                         goals.extend(rule.antecedents)
                     else:
-                        self.working_memory = self.working_memory.union(
-                            rule.fire(self.working_memory))
                         for c in rule.consequences:
                             goals.remove(c)
+                        self.working_memory = self.working_memory.union(rule.fire(self.working_memory))
                         self.fired_rules.append((rule.id, rule.description))
+                    has_modified_goal = True
                     break
+            if not has_modified_goal:
+                break
         return self.fired_rules
 
 
