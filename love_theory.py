@@ -117,13 +117,18 @@ if __name__ == "__main__":
         LoveTheoryRule({"passion"}, {"infatuation"}, "If passion, then infatuation.", 
                         lambda x, y: x == y),
         LoveTheoryRule({"commitment"}, {"empty love"}, "If commitment, then empty love.", 
+                        lambda x, y: x == y),
+        LoveTheoryRule({"intimacy", "passion"}, {"romantic love"}, "If intimacy and passion, then romantic love.",
+                        lambda x, y: x == y),
+        LoveTheoryRule({"intimacy", "commitment"}, {"companionate love"}, "If intimacy and commitment, then companionate love.",
+                        lambda x, y: x == y),
+        LoveTheoryRule({"commitment", "passion"}, {"fatuous love"}, "If commitment and passion, then fatuous love.", 
+                        lambda x, y: x == y),
+        LoveTheoryRule({"intimacy", "commitment", "passion"}, {"consummate love"}, "If intimacy, commitment and passion, then consummate love.",
                         lambda x, y: x == y)
     }
 
-# LoveTheoryRule({"intimacy", "passion"}, {"romantic love"}, "If intimacy and passion, then romantic love."),
-#         LoveTheoryRule({"intimacy", "commitment"}, {"companionate love"}, "If intimacy and commitment, then companionate love."),
-#         LoveTheoryRule({"commitment", "passion"}, {"fatuous love"}, "If commitment and passion, then fatuous love."),
-#         LoveTheoryRule({"intimacy", "commitment", "passion"}, {"consummate love"}, "If intimacy, commitment and passion, then consummate love."),
+
     # LoveTheoryRule({"nonlove"}, {"nonlove description"}, "If nonlove, then nonlove description."),
         # LoveTheoryRule({"friendship"}, {"friendship description"}, "If friendship, then friendship description."),
         # LoveTheoryRule({"infatuation"}, {"infatuation description"}, "If infatuation, then infatuation description."),
