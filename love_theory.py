@@ -8,22 +8,27 @@ class LoveTheoryAgent:
         self.passion_points = p
         self.commitment_points = c
         self.working_memory = set()
-        self.rules = set()
+        self.initialization_rules = set()
+        self.production_rules = set()
         self.fired_rules = []
         self.goal = None
         self.subgoals = set()
 
-    def set_rules(self, rules):
-        self.rules = rules
+    def set_initialization_rules(self, rules):
+        self.initialization_rules = rules
 
+    def set_production_rules(self, rules):
+        self.production_rules = rules
+    
     def reset_working_memory(self):
-        self.working_memory = set()
+        for rule in self.initialization_rules:
+            self.working_memory = self.working_memory.union(rule.fire(self.working_memory))
 
     def forward_chaining(self):
         self.reset_working_memory()
         while True:
             has_fired_rules = False
-            for rule in self.rules:
+            for rule in self.production_rules:
                 if rule.fire(self.working_memory).issubset(self.working_memory):
                     continue
                 has_fired_rules = True
@@ -36,16 +41,16 @@ class LoveTheoryAgent:
 
     def backward_chaining(self, goal):
         self.reset_working_memory()
-        goals = set(goal)
+        goals = [goal]
         while len(goals) >= 1:
-            for rule in self.rules:
+            for rule in self.production_rules:
                 if rule.consequences == goals[-1]:
-                    if len(rule.fire(self.working_memory)) == 0:
-                        goals = goals.union(rule.antecedents)
+                    if rule.fire(self.working_memory).issubset(self.working_memory):
+                        goals.append(rule.antecedents)
                     else:
                         self.working_memory = self.working_memory.union(
                             rule.fire(self.working_memory))
-                        goals = goals.difference(rule.consequences)
+                        goals.remove(rule.consequences)
                         self.fired_rules.append((rule.id, rule.description))
 
 
@@ -102,14 +107,19 @@ if __name__ == "__main__":
 
     agent = LoveTheoryAgent(
         love_points['intimacy'], love_points['passion'], love_points['commitment'])
-    rules = {
+    
+    initialisation = {
         LoveTheoryRule(agent.intimacy_points, {"intimacy"}, "If intimacy_points > (total_points / 2), then intimacy.",
                        lambda x, y: x >= (rating_max + rating_min) / 2 * len([l for l in love_scale if l.category == 'intimacy'])),
         LoveTheoryRule(agent.passion_points, {"passion"}, "If passion_points > (total_points / 2), then passion.",
                        lambda x, y: x >= (rating_max + rating_min) / 2 * len([l for l in love_scale if l.category == 'passion'])),
         LoveTheoryRule(agent.commitment_points, {"commitment"}, "If commitment_points > (total_points / 2), then commitment.",
-                       lambda x, y: x >= (rating_max + rating_min) / 2 * len([l for l in love_scale if l.category == 'commitment'])),
+                       lambda x, y: x >= (rating_max + rating_min) / 2 * len([l for l in love_scale if l.category == 'commitment']))
+    }
 
+    agent.set_initialization_rules(initialisation)
+
+    production = {
         LoveTheoryRule(set(), {"nonlove"}, "If intimacy, passion, commitment are all absent, then nonlove.", 
                         lambda _, y: not ("intimacy" in y or "passion" in y or "commitment" in y)),
         LoveTheoryRule({"intimacy"}, {"friendship"}, "If intimacy, then friendship.",
@@ -128,17 +138,17 @@ if __name__ == "__main__":
                         lambda x, y: x == y)
     }
 
+    agent.set_production_rules(production)
 
     # LoveTheoryRule({"nonlove"}, {"nonlove description"}, "If nonlove, then nonlove description."),
-        # LoveTheoryRule({"friendship"}, {"friendship description"}, "If friendship, then friendship description."),
-        # LoveTheoryRule({"infatuation"}, {"infatuation description"}, "If infatuation, then infatuation description."),
-        # LoveTheoryRule({"empty love"}, {"empty love description"}, "If empty love, then empty love description."),
-        # LoveTheoryRule({"romantic love"}, {"romantic love description"}, "If romantic love, then romantic love description."),
-        # LoveTheoryRule({"companionate love"}, {"companionate love description"}, "If companionate love, then companionate love description."),
-        # LoveTheoryRule({"fatuous love"}, {"fatuous love description"}, "If fatuous love, then fatuous love description."),
-        # LoveTheoryRule({"consummate love"}, {"consummate love description"}, "If consummate love, then consummate love description.")
+    # LoveTheoryRule({"friendship"}, {"friendship description"}, "If friendship, then friendship description."),
+    # LoveTheoryRule({"infatuation"}, {"infatuation description"}, "If infatuation, then infatuation description."),
+    # LoveTheoryRule({"empty love"}, {"empty love description"}, "If empty love, then empty love description."),
+    # LoveTheoryRule({"romantic love"}, {"romantic love description"}, "If romantic love, then romantic love description."),
+    # LoveTheoryRule({"companionate love"}, {"companionate love description"}, "If companionate love, then companionate love description."),
+    # LoveTheoryRule({"fatuous love"}, {"fatuous love description"}, "If fatuous love, then fatuous love description."),
+    # LoveTheoryRule({"consummate love"}, {"consummate love description"}, "If consummate love, then consummate love description.")
 
-    agent.set_rules(rules)
     fired_rules = agent.forward_chaining()
 
     for f in fired_rules:
