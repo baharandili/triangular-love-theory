@@ -20,12 +20,12 @@ class LoveTheoryAgent:
     def set_production_rules(self, rules):
         self.production_rules = rules
     
-    def reset_working_memory(self):
+    def initialize_working_memory(self):
         for rule in self.initialization_rules:
             self.working_memory = self.working_memory.union(rule.fire(self.working_memory))
 
     def forward_chaining(self):
-        self.reset_working_memory()
+        self.initialize_working_memory()
         while True:
             has_fired_rules = False
             for rule in self.production_rules:
@@ -40,18 +40,21 @@ class LoveTheoryAgent:
         return self.fired_rules
 
     def backward_chaining(self, goal):
-        self.reset_working_memory()
+        self.initialize_working_memory()
         goals = [goal]
         while len(goals) >= 1:
             for rule in self.production_rules:
-                if rule.consequences == goals[-1]:
-                    if rule.fire(self.working_memory).issubset(self.working_memory):
-                        goals.append(rule.antecedents)
+                if goals[-1] in list(rule.consequences):
+                    if len(rule.fire(self.working_memory)) == 0:
+                        goals.extend(rule.antecedents)
                     else:
                         self.working_memory = self.working_memory.union(
                             rule.fire(self.working_memory))
-                        goals.remove(rule.consequences)
+                        for c in rule.consequences:
+                            goals.remove(c)
                         self.fired_rules.append((rule.id, rule.description))
+                    break
+        return self.fired_rules
 
 
 class LoveTheoryRule:
@@ -149,7 +152,7 @@ if __name__ == "__main__":
     # LoveTheoryRule({"fatuous love"}, {"fatuous love description"}, "If fatuous love, then fatuous love description."),
     # LoveTheoryRule({"consummate love"}, {"consummate love description"}, "If consummate love, then consummate love description.")
 
-    fired_rules = agent.forward_chaining()
+    fired_rules = agent.backward_chaining("consummate love")
 
     for f in fired_rules:
         print(f)
