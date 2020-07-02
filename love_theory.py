@@ -47,7 +47,7 @@ class LoveTheoryAgent:
             for rule in self.production_rules:
                 if goals[-1] in list(rule.consequences):
                     if len(rule.fire(self.working_memory)) == 0:
-                        goals.extend(rule.antecedents)
+                        goals.extend([r for r in rule.antecedents if r not in list(self.working_memory)])
                     else:
                         for c in rule.consequences:
                             goals.remove(c)
