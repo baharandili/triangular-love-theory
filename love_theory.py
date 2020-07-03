@@ -10,10 +10,7 @@ class LoveTheoryAgent:
         self.working_memory = set()
         self.initialization_rules = set()
         self.production_rules = set()
-        self.fired_rules = []
-        self.goal = None
-        self.subgoals = set()
-
+        
     def set_initialization_rules(self, rules):
         self.initialization_rules = rules
 
@@ -22,26 +19,27 @@ class LoveTheoryAgent:
     
     def initialize_working_memory(self):
         for rule in self.initialization_rules:
-            self.working_memory = self.working_memory.union(rule.fire(self.working_memory))
+            self.working_memory = self.working_memory.union(rule.fire())
 
     def forward_chaining(self):
         self.initialize_working_memory()
+        fired_rules = []
         while True:
             has_fired_rules = False
             for rule in self.production_rules:
                 if rule.fire(self.working_memory).issubset(self.working_memory):
                     continue
                 has_fired_rules = True
-                self.working_memory = self.working_memory.union(
-                    rule.fire(self.working_memory))
-                self.fired_rules.append((rule.id, rule.description))
+                self.working_memory = self.working_memory.union(rule.fire(self.working_memory))
+                fired_rules.append((rule.id, rule.description))
             if not has_fired_rules:
                 break
-        return self.fired_rules
+        return fired_rules
 
     def backward_chaining(self, goal):
         self.initialize_working_memory()
         goals = [goal]
+        fired_rules = []
         while len(goals) >= 1:
             has_modified_goal = False
             for rule in self.production_rules:
@@ -52,12 +50,21 @@ class LoveTheoryAgent:
                         for c in rule.consequences:
                             goals.remove(c)
                         self.working_memory = self.working_memory.union(rule.fire(self.working_memory))
-                        self.fired_rules.append((rule.id, rule.description))
+                        fired_rules.append((rule.id, rule.description))
                     has_modified_goal = True
                     break
             if not has_modified_goal:
                 break
-        return self.fired_rules
+        unsatisfied_antecedents = []
+        if len(goals) >= 1:
+            subgoals = set(goals[1:])
+            antecedents = set()
+            for rule in self.initialization_rules:
+                antecedents = antecedents.union(rule.consequences)
+            unsatisfied_antecedents = list(antecedents.intersection(subgoals))
+
+        return (fired_rules, unsatisfied_antecedents)
+        
 
 
 class LoveTheoryRule:
@@ -71,7 +78,7 @@ class LoveTheoryRule:
         self.description = d
         self.predicate = p
 
-    def fire(self, memory):
+    def fire(self, memory = set()):
         if self.predicate(self.antecedents, memory):
             return self.consequences
         return set()
@@ -114,16 +121,16 @@ if __name__ == "__main__":
     agent = LoveTheoryAgent(
         love_points['intimacy'], love_points['passion'], love_points['commitment'])
     
-    initialisation = {
+    initialization = {
         LoveTheoryRule(agent.intimacy_points, {"intimacy"}, "If intimacy_points > (total_points / 2), then intimacy.",
-                       lambda x, y: x >= (rating_max + rating_min) / 2 * len([l for l in love_scale if l.category == 'intimacy'])),
+                       lambda x, _: x >= (rating_max + rating_min) / 2 * len([l for l in love_scale if l.category == 'intimacy'])),
         LoveTheoryRule(agent.passion_points, {"passion"}, "If passion_points > (total_points / 2), then passion.",
-                       lambda x, y: x >= (rating_max + rating_min) / 2 * len([l for l in love_scale if l.category == 'passion'])),
+                       lambda x, _: x >= (rating_max + rating_min) / 2 * len([l for l in love_scale if l.category == 'passion'])),
         LoveTheoryRule(agent.commitment_points, {"commitment"}, "If commitment_points > (total_points / 2), then commitment.",
-                       lambda x, y: x >= (rating_max + rating_min) / 2 * len([l for l in love_scale if l.category == 'commitment']))
+                       lambda x, _: x >= (rating_max + rating_min) / 2 * len([l for l in love_scale if l.category == 'commitment']))
     }
 
-    agent.set_initialization_rules(initialisation)
+    agent.set_initialization_rules(initialization)
 
     production = {
         LoveTheoryRule(set(), {"nonlove"}, "If intimacy, passion, commitment are all absent, then nonlove.", 
@@ -155,7 +162,10 @@ if __name__ == "__main__":
     # LoveTheoryRule({"fatuous love"}, {"fatuous love description"}, "If fatuous love, then fatuous love description."),
     # LoveTheoryRule({"consummate love"}, {"consummate love description"}, "If consummate love, then consummate love description.")
 
-    fired_rules = agent.backward_chaining("consummate love")
+    fired_rules, unsatisfied_antecedents = agent.backward_chaining("consummate love")
 
     for f in fired_rules:
         print(f)
+
+    for u in unsatisfied_antecedents:
+        print(u)
