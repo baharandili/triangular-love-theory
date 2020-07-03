@@ -52,14 +52,18 @@ for category in love_scale_dict:
         love_scale.append(LoveScale(category, item))
 
 # TODO: Prompt the user about this program
+print(f"Welcome! This program determines the love type that exists between you and your other half. Before this, you'll have to answer {len(love_scale)} questions.")
+to_shuffle = get_proper_input(["y", "n"],input_prompt="Do you wish to shuffle the questions? (y/n) ")
 
-# random.shuffle(love_scale)
-print(f"Please rate the following statements on a scale of {rating_min} to {rating_max} \
-    ({rating_min} = Strongly Disagree, {rating_max} = Strongly Agree)")
+if to_shuffle == "y":
+    random.shuffle(love_scale)
+    print("Done shuffling! Let's begin!")
+
+print(f"Please rate the following statements on a scale of {rating_min} to {rating_max}. ({rating_min} = Strongly Disagree, {rating_max} = Strongly Agree)")
 
 for l in love_scale:
     print(l.item)
-    rating = int(get_proper_input([str(i) for i in range(rating_min, rating_max + 1)],
+    rating = int(get_proper_input([str(i) for i in range(rating_min, rating_max + 1)], input_prompt="Rating: ",
                                   error_prompt=f"Please enter a value betwen {rating_min} and {rating_max}."))
     love_points[l.category] += rating
 
@@ -144,7 +148,7 @@ correction = [
 
 agent.set_rules(initialization=initialization,
                 production=production, correction=correction)
-print("Thanks for completing the questions! Here are two actions that I can perform: ")
+print("Thanks for answering! Here are two actions that I can perform: ")
 print("1. Tell you which type of love exists between you and your companion. (Forward Chaining)")
 print("2. You'll take a guess at the love type, and I'll verify if it is correct. (Backward Chaining)")
 choice = int(get_proper_input(
