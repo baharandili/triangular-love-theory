@@ -108,23 +108,25 @@ if __name__ == "__main__":
         for item in love_scale_dict[category]['items']:
             love_scale.append(LoveScale(category, item))
     
-    # print("Hi, welcome to our system. Please select the types of chaining. (1 = Forward Chaining, 2 = Backward Chaining")
-    # while True:
-    #         # Select types of chaining 
-    #         try:
-    #             method = int(input())
-    #             break
-    #         except ValueError:
-    #              print("Invalid input. Please enter an integer number between 1 and 2.")
+    print("Hi, welcome to our system. Please select the types of chaining. (1 = Forward Chaining, 2 = Backward Chaining")
+    while True:
+            try:
+                # Select types of chaining 
+                method = int(input())
+                if (method == 1 or method == 2):
+                    break
+            except ValueError:
+                pass
+
+            print("Invalid input. Please enter an integer number between 1 and 2.")
 
     # random.shuffle(love_scale)
-    print(f"Please rate the following statements on a scale of {rating_min} to {rating_max} ({rating_min} = Strongly Disagree, {rating_max} = Strong Agree)")
+    print(f"Please rate the following statements on a scale of {rating_min} to {rating_max} ({rating_min} = Strongly Disagree, {rating_max} = Strongly Agree)")
     for l in love_scale:
         print(l.item)
         while True: 
-            user_in = input()
             try:
-                rating = int(user_in)
+                rating = int(input())
                 if (rating >= rating_min and rating <= rating_max):
                     break
                     
@@ -134,7 +136,7 @@ if __name__ == "__main__":
             print("Invalid input. Please enter an integer number between 1 and 5.")        
 
         love_points[l.category] += rating
-
+    
     agent = LoveTheoryAgent(
         love_points['intimacy'], love_points['passion'], love_points['commitment'])
 
@@ -179,11 +181,17 @@ if __name__ == "__main__":
     # LoveTheoryRule({"fatuous love"}, {"fatuous love description"}, "If fatuous love, then fatuous love description."),
     # LoveTheoryRule({"consummate love"}, {"consummate love description"}, "If consummate love, then consummate love description.")
 
-    fired_rules, unsatisfied_antecedents = agent.backward_chaining(
-        "consummate love")
+    # Forward Chaining
+    if (method == 1):
+        fired_rules = agent.forward_chaining()
+    else:
+        fired_rules, unsatisfied_antecedents = agent.backward_chaining(
+            "consummate love")
+        for u in unsatisfied_antecedents:
+            print(u)
 
     for f in fired_rules:
         print(f)
 
-    for u in unsatisfied_antecedents:
-        print(u)
+    
+        
