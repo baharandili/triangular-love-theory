@@ -109,7 +109,7 @@ if __name__ == "__main__":
             love_scale.append(LoveScale(category, item))
 
     # random.shuffle(love_scale)
-    print(f"Please rate the following statements on a scale of ${rating_min} to ${rating_max} (${rating_min} = Strongly Disagree, ${rating_max} = Strong Agree)")
+    print(f"Please rate the following statements on a scale of {rating_min} to {rating_max} ({rating_min} = Strongly Disagree, {rating_max} = Strong Agree)")
     for l in love_scale:
         print(l.item)
         user_in = input()
