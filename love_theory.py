@@ -38,29 +38,33 @@ class LoveTheoryAgent:
                 has_fired_rules = True
                 self.working_memory = self.working_memory.union(
                     rule.fire(self.working_memory))
-                fired_rules.append((rule.id, rule.description))
+                fired_rules.append((rule.id, rule.antecedents, rule.consequences))
             if not has_fired_rules:
                 break
         return fired_rules
 
     def backward_chaining(self, goal):
         self.__initialize_working_memory()
-        goals = [goal]
-        fired_rules = []
+        goals = list(goal)
+        rule_log = {
+            'fired': [],
+            'corrected': []
+        }
         while len(goals) >= 1:
             has_modified_goal = False
             for rule in self.production_rules:
                 if goals[-1] in list(rule.consequences):
-                    if len(rule.fire(self.working_memory)) == 0:
+                    if len(rule.fire(self.working_memory)) == 0 and len(rule.antecedents) >= 1:
                         goals.extend(
                             [r for r in rule.antecedents if r not in list(self.working_memory)])
-                    else:
+                        has_modified_goal = True
+                    elif len(rule.fire(self.working_memory)) >= 1:
                         for c in rule.consequences:
                             goals.remove(c)
                         self.working_memory = self.working_memory.union(
                             rule.fire(self.working_memory))
-                        fired_rules.append((rule.id, rule.description))
-                    has_modified_goal = True
+                        rule_log['fired'].append((rule.id, rule.antecedents, rule.consequences))
+                        has_modified_goal = True
                     break
             if not has_modified_goal:
                 break
@@ -73,7 +77,7 @@ class LoveTheoryAgent:
             unsatisfied_antecedents = list(antecedents.intersection(subgoals))
         else:
             unused_antecedents = self.working_memory.copy()
-            for f in fired_rules:
+            for f in rule_log['fired']:
                 unused_antecedents = unused_antecedents.difference(
                     self.__get_rule(f[0]).antecedents)
             if len(unused_antecedents) > 1:
@@ -81,8 +85,8 @@ class LoveTheoryAgent:
                     if not rule.fire(unused_antecedents).issubset(unused_antecedents):
                         unused_antecedents = unused_antecedents.union(
                             rule.fire(unused_antecedents))
-                        fired_rules.append((rule.id, rule.description))
-        return (fired_rules, unsatisfied_antecedents)
+                        rule_log['corrected'].append((rule.id, rule.antecedents, rule.consequences))
+        return (rule_log, unsatisfied_antecedents)
 
 
 class LoveTheoryRule:
