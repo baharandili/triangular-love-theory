@@ -51,7 +51,6 @@ for category in love_scale_dict:
     for item in love_scale_dict[category]['items']:
         love_scale.append(LoveScale(category, item))
 
-# TODO: Prompt the user about this program
 print(f"Welcome! This program determines the love type that exists between you and your other half. Before this, you'll have to answer {len(love_scale)} questions.")
 to_shuffle = get_proper_input(["y", "n"],input_prompt="Do you wish to shuffle the questions? (y/n) ")
 
