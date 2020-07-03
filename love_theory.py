@@ -112,8 +112,14 @@ if __name__ == "__main__":
     print(f"Please rate the following statements on a scale of {rating_min} to {rating_max} ({rating_min} = Strongly Disagree, {rating_max} = Strong Agree)")
     for l in love_scale:
         print(l.item)
-        user_in = input()
-        rating = int(user_in)
+        while True:
+            user_in = input()
+            try:
+                rating = int(user_in)
+                break
+            except ValueError:
+                 print("Invalid input. Please enter an integer number between 1 and 5.")
+                 
         while not (rating >= rating_min and rating <= rating_max):
             print("Invalid input. Please enter an integer number between 1 and 5.")
             user_in = input()
