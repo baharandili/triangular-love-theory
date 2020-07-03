@@ -126,17 +126,34 @@ if __name__ == "__main__":
         for item in love_scale_dict[category]['items']:
             love_scale.append(LoveScale(category, item))
 
+
+    print("Hi, welcome to our system. Please select the types of chaining. (1 = Forward Chaining, 2 = Backward Chaining")
+    while True:
+        try:
+            # Select types of chaining
+            method = int(input())
+            if (method == 1 or method == 2):
+                break
+        except ValueError:
+            pass
+        
+        print("Invalid input. Please enter an integer number between 1 and 2.")
+
     # random.shuffle(love_scale)
     print(f"Please rate the following statements on a scale of {rating_min} to {rating_max} \
-        ({rating_min} = Strongly Disagree, {rating_max} = Strong Agree)")
+        ({rating_min} = Strongly Disagree, {rating_max} = Strongly Agree)")
     for l in love_scale:
         print(l.item)
-        user_in = input()
-        rating = int(user_in)
-        while not (rating >= rating_min and rating <= rating_max):
+        while True:
+            try:
+                rating = int(input())
+                if (rating >= rating_min and rating <= rating_max):
+                    break
+            except ValueError:
+                pass
+            
             print("Invalid input. Please enter an integer number between 1 and 5.")
-            user_in = input()
-            rating = int(user_in)
+            
         love_points[l.category] += rating
 
     agent = LoveTheoryAgent(
@@ -205,10 +222,17 @@ if __name__ == "__main__":
 
     agent.set_rules(initialization=initialization, production=production, correction=correction)
 
-    fired_rules, unsatisfied_antecedents = agent.backward_chaining("fatuous love")
+    # Forward Chaining
+    if (method == 1):
+        fired_rules = agent.forward_chaining()
+        
+    # Backward Chaining
+    else:
+        fired_rules, unsatisfied_antecedents = agent.backward_chaining("fatuous love")
+        for u in unsatisfied_antecedents:
+            print(u)    
 
     for f in fired_rules:
         print(f)
 
-    for u in unsatisfied_antecedents:
-        print(u)
+    
