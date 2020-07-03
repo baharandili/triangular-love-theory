@@ -8,9 +8,9 @@ class LoveTheoryAgent:
         self.passion_points = passion_points
         self.commitment_points = commitment_points
         self.working_memory = set()
-        self.initialization_rules = set()
-        self.production_rules = set()
-        self.correction_rules = set()
+        self.initialization_rules = []
+        self.production_rules = []
+        self.correction_rules = []
 
     def set_rules(self, *, initialization, production, correction):
         self.initialization_rules = initialization
@@ -23,7 +23,7 @@ class LoveTheoryAgent:
     
     def __get_rule(self, r):
         matching_rule = None 
-        all_rules = self.initialization_rules.union(self.production_rules.union(self.correction_rules))
+        all_rules = self.initialization_rules + self.production_rules + self.correction_rules
         for rule in list(all_rules):
             if rule.id == r:
                 matching_rule = rule
@@ -159,16 +159,16 @@ if __name__ == "__main__":
     agent = LoveTheoryAgent(
         intimacy_points=love_points['intimacy'], passion_points=love_points['passion'], commitment_points=love_points['commitment'])
 
-    initialization = {
+    initialization = [
         LoveTheoryRule(agent.intimacy_points, {"intimacy"}, "If intimacy_points > (total_points / 2), then intimacy.",
                        lambda x, _: x >= (rating_max + rating_min) / 2 * len([l for l in love_scale if l.category == 'intimacy'])),
         LoveTheoryRule(agent.passion_points, {"passion"}, "If passion_points > (total_points / 2), then passion.",
                        lambda x, _: x >= (rating_max + rating_min) / 2 * len([l for l in love_scale if l.category == 'passion'])),
         LoveTheoryRule(agent.commitment_points, {"commitment"}, "If commitment_points > (total_points / 2), then commitment.",
                        lambda x, _: x >= (rating_max + rating_min) / 2 * len([l for l in love_scale if l.category == 'commitment']))
-    }
+    ]
 
-    production = {
+    production = [
         LoveTheoryRule(set(), {"nonlove"}, "If intimacy, passion, commitment are all absent, then nonlove.",
                        lambda _, y: not ("intimacy" in y or "passion" in y or "commitment" in y)),
 
@@ -188,9 +188,9 @@ if __name__ == "__main__":
 
         LoveTheoryRule({"intimacy", "commitment", "passion"}, {"consummate love"}, "If intimacy, commitment and passion, then consummate love.",
                        lambda x, y: x.issubset(y))
-    }
+    ]
 
-    correction = {
+    correction = [
         LoveTheoryRule({"friendship", "passion"}, {"romantic love"}, "If friendship and passion, then romantic love.",
                        lambda x, y: x == y),
         LoveTheoryRule({"intimacy", "infatuation"}, {"romantic love"}, "If intimacy and infatuation, then romantic love.",
@@ -218,7 +218,7 @@ if __name__ == "__main__":
                        lambda x, y: x == y),
         LoveTheoryRule({"fatuous love", "intimacy"}, {"consummate love"}, "If fatuous love and intimacy, then consummate love.",
                        lambda x, y: x == y)
-    }
+    ]
 
     agent.set_rules(initialization=initialization, production=production, correction=correction)
 
