@@ -1,6 +1,6 @@
 import json
 import random
-import copy
+
 
 class LoveTheoryAgent:
     def __init__(self, *, intimacy_points, passion_points, commitment_points):
@@ -44,7 +44,6 @@ class LoveTheoryAgent:
                 fired_rules.append((rule.id, rule.description))
             if not has_fired_rules:
                 break
-        # TODO: Should return the final decision here 
         return fired_rules
         
 
@@ -77,13 +76,13 @@ class LoveTheoryAgent:
                 antecedents = antecedents.union(rule.consequences)
             unsatisfied_antecedents = list(antecedents.intersection(subgoals))
         else: 
-            tracer = copy.deepcopy(self.working_memory)
+            unused_antecedents = self.working_memory.copy()
             for f in fired_rules:
-                tracer = tracer.difference(self.__get_rule(f[0]).antecedents)
-            if len(tracer) > 1:
+                unused_antecedents = unused_antecedents.difference(self.__get_rule(f[0]).antecedents)
+            if len(unused_antecedents) > 1:
                 for rule in self.correction_rules:
-                    if not rule.fire(tracer).issubset(tracer):
-                        tracer = tracer.union(rule.fire(tracer))
+                    if not rule.fire(unused_antecedents).issubset(unused_antecedents):
+                        unused_antecedents = unused_antecedents.union(rule.fire(unused_antecedents))
                         fired_rules.append((rule.id, rule.description))
         return (fired_rules, unsatisfied_antecedents)
 
@@ -206,8 +205,7 @@ if __name__ == "__main__":
 
     agent.set_rules(initialization=initialization, production=production, correction=correction)
 
-    fired_rules, unsatisfied_antecedents = agent.backward_chaining(
-        "fatuous love")
+    fired_rules, unsatisfied_antecedents = agent.backward_chaining("fatuous love")
 
     for f in fired_rules:
         print(f)
